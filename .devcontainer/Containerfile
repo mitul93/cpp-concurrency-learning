@@ -53,7 +53,7 @@ USER ${USERNAME}
 
 # install CMake (non-root)
 # renovate: datasource=github-tags depName=Kitware/CMake versioning=semver
-ARG CMAKE_VERSION=4.3.3
+ARG CMAKE_VERSION=4.3.4
 RUN --mount=type=bind,source=scripts/install_cmake.sh,target=/tmp/install_cmake.sh,readonly \
     CMAKE_VERSION=${CMAKE_VERSION} /tmp/install_cmake.sh /home/${USERNAME}/cmake
 ENV PATH="$PATH:/home/${USERNAME}/cmake/bin/"
