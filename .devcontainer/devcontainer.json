@@ -1,0 +1,40 @@
+{
+	"name": "${localWorkspaceFolderBasename}",
+	"build": {
+		"context": "..",
+		"dockerfile": "Containerfile",
+		"args": {
+			"__REPOSITORY_NAME": "${localWorkspaceFolderBasename}",
+			"CACHE_BUST": "0"
+		},
+		"options": [
+			"--secret",
+			"id=vcpkg-nuget-secret,src=${localEnv:HOME}/src/secrets/github/vcpkg-nuget/vcpkg-nuget-readonly"
+		]
+	},
+	"containerUser": "devcontainer",
+	"userEnvProbe": "loginInteractiveShell",
+	"updateRemoteUserUID": true,
+	"runArgs": [
+		"--rm",
+		"-it",
+		"--memory",
+		"4g",
+		"--memory-swap",
+		"4g",
+		"--cpus",
+		"4",
+		"--security-opt=seccomp=unconfined" // required for thread sanitizer
+	],
+	"workspaceFolder": "/${localWorkspaceFolderBasename}",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/${localWorkspaceFolderBasename},type=bind,consistency=cached",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.cpptools",
+				"ms-vscode.cmake-tools",
+				"llvm-vs-code-extensions.vscode-clangd"
+			]
+		}
+	}
+}

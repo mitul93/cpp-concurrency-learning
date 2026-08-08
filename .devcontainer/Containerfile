@@ -1,0 +1,87 @@
+# base image
+ARG CONTAINER_BASE_IMAGE_NAME=debian
+ARG CONTAINER_BASE_IMAGE_TAG=trixie-slim
+ARG CONTAINER_BASE_IMAGE_DIGEST=sha256:1d3c811171a08a5adaa4a163fbafd96b61b87aa871bbc7aa15431ac275d3d430
+FROM ${CONTAINER_BASE_IMAGE_NAME}:${CONTAINER_BASE_IMAGE_TAG}@${CONTAINER_BASE_IMAGE_DIGEST} AS base
+
+# timezone
+ENV TZ="Etc/UTC"
+
+# set locale
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN rm -f /etc/apt/apt.conf.d/docker-clean
+
+# renovate: suite=bullseye depName=clangd
+ARG __CLANGD_VERSION="1:19.0-63"
+# renovate: suite=bullseye depName=clang
+ARG __CLANG_VERSION="1:19.0-63"
+# install apt packages and dependencies
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    sudo git make curl gnupg2 wget ca-certificates openssh-client \
+    # c++
+    build-essential clang=${__CLANG_VERSION} clang-tidy clang-format gdb \
+    # clangd
+    clangd=${__CLANGD_VERSION} \
+    # tsan
+    libclang-rt-dev llvm \
+    # vcpkg
+    curl zip unzip tar pkg-config \
+    # nuget
+    mono-complete
+
+ARG USERNAME=devcontainer
+ARG USER_UID=1000
+ARG USER_GID=1000
+# add $USER to usergroup
+# Some variants of Ubuntu has default user ubuntu with 1000:1000
+# Delete default user if USER_UID:USER_GID is already present
+RUN OLD_USER="$(getent passwd ${USER_UID} | cut -d: -f1 || true)"; \
+    if [ -n "$OLD_USER" ]; then \
+    userdel -r "$OLD_USER" || true; \
+    fi; \
+    groupadd --gid ${USER_GID} ${USERNAME} && \
+    useradd --uid ${USER_UID} --gid ${USER_GID} -m -l ${USERNAME} -s /bin/bash && \
+    usermod -aG sudo ${USERNAME} && \
+    echo "${USERNAME}:${USERNAME}_super_user" | chpasswd
+
+USER ${USERNAME}
+
+# install CMake (non-root)
+# renovate: datasource=github-tags depName=Kitware/CMake versioning=semver
+ARG CMAKE_VERSION=4.3.3
+RUN --mount=type=bind,source=scripts/install_cmake.sh,target=/tmp/install_cmake.sh,readonly \
+    CMAKE_VERSION=${CMAKE_VERSION} /tmp/install_cmake.sh /home/${USERNAME}/cmake
+ENV PATH="$PATH:/home/${USERNAME}/cmake/bin/"
+
+# install vcpkg (non-root)
+# renovate: datasource=github-tags depName=microsoft/vcpkg versioning=loose
+ARG VCPKG_VERSION=2026.06.24
+RUN --mount=type=bind,source=scripts/install_vcpkg.sh,target=/tmp/install_vcpkg.sh,readonly \
+    VCPKG_VERSION=${VCPKG_VERSION} /tmp/install_vcpkg.sh /home/${USERNAME}
+ENV PATH="$PATH:/home/${USERNAME}/vcpkg/"
+ENV VCPKG_ROOT=/home/${USERNAME}/vcpkg
+ENV VCPKG_BINARY_SOURCES="clear;nuget,https://nuget.pkg.github.com/mitul93/index.json,read"
+ENV VCPKG_NUGET_REPOSITORY=https://github.com/mitul93/vcpkg-nuget
+ENV VCPKG_FEATURE_FLAGS=binarycaching
+
+# Install nuget
+RUN vcpkg fetch nuget && mkdir ~/.local/bin && ln -sf ${VCPKG_ROOT}/downloads/tools/nuget-*/nuget.exe ~/.local/bin/nuget.exe
+ENV PATH="$PATH:/home/${USERNAME}/.local/bin/"
+
+ARG CACHE_BUST=0
+ARG GITHUB_PACKAGE_NAMESPACE="mitul93"
+RUN --mount=type=secret,id=vcpkg-nuget-secret,uid=${USER_UID},gid=${USER_GID},mode=0400 \
+    mono /home/${USERNAME}/.local/bin/nuget.exe sources Add -Source "https://nuget.pkg.github.com/mitul93/index.json" \
+    -Name "github" -Username ${GITHUB_PACKAGE_NAMESPACE} -Password "$(cat /run/secrets/vcpkg-nuget-secret)"
+
+# working directory
+ARG __REPOSITORY_NAME=cuda_cpp_learning
+WORKDIR /${__REPOSITORY_NAME}
+
+# entry point
+ENTRYPOINT ["/bin/bash"]

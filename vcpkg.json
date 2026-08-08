@@ -1,0 +1,6 @@
+{
+    "name": "cpp-devcontainer",
+    "dependencies": [
+        "benchmark"
+    ]
+}

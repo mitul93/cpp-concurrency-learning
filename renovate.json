@@ -1,0 +1,79 @@
+{
+    "ignorePaths": [
+        "**/build/**"
+    ],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "description": "Containerfile ARG version pins annotated with a renovate comment",
+            "managerFilePatterns": [
+                "/(^|/)Containerfile$/"
+            ],
+            "matchStrings": [
+                "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?\\s*\\nARG (?<key>[A-Z0-9_]+)\\s*=\\s*\"?(?<currentValue>[^\"\\s]+)\"?"
+            ]
+        },
+        {
+            "customType": "regex",
+            "managerFilePatterns": [
+                "/(^|/)Containerfile$/"
+            ],
+            "matchStrings": [
+                "#\\s*renovate:\\s*?(suite=(?<suite>.*?))?\\s*depName=(?<depName>.*?)?\\sARG .*?_VERSION=\"(?<currentValue>.*)\""
+            ],
+            "registryUrlTemplate": "https://deb.debian.org/debian?suite={{#if suite }}{{suite}}{{else}}stable{{/if}}&components=main,contrib,non-free&binaryArch=amd64",
+            "datasourceTemplate": "deb"
+        },
+        {
+            "customType": "jsonata",
+            "description": "Update baseline of vcpkg registry",
+            "managerFilePatterns": [
+                "/vcpkg-configuration.json$/"
+            ],
+            "fileFormat": "json",
+            "datasourceTemplate": "git-refs",
+            "matchStrings": [
+                "$.\"default-registry\".{\"packageName\": repository,  \"currentValue\":\"master\", \"currentDigest\": baseline}"
+            ]
+        }
+    ],
+    "packageRules": [
+        {
+            "matchManagers": [
+                "custom.regex"
+            ],
+            "matchFileNames": [
+                "**/Containerfile"
+            ],
+            "groupName": "Containerfile ARG versions",
+            "minimumReleaseAge": "1 month"
+        },
+        {
+            "description": "Containerfile image updates",
+            "matchDatasources": [
+                "docker"
+            ],
+            "matchFileNames": [
+                "**/Containerfile"
+            ],
+            "minimumReleaseAge": null
+        },
+        {
+            "matchFileNames": [
+                "vcpkg-configuration.json"
+            ],
+            "groupName": "vcpkg configuration update"
+        },
+        {
+            "matchDatasources": [
+                "deb"
+            ],
+            "matchPackageNames": [
+                "clangd"
+            ],
+            "registryUrls": [
+                "https://deb.debian.org/debian?suite=stable&components=main,contrib,non-free&binaryArch=amd64"
+            ]
+        }
+    ]
+}
