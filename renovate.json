@@ -1,4 +1,7 @@
 {
+    "prCreation": "immediate",
+    "prConcurrentLimit": 6,
+    "prHourlyLimit": 6,
     "ignorePaths": [
         "**/build/**"
     ],
