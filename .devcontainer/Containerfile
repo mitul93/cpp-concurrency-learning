@@ -76,8 +76,11 @@ ENV PATH="$PATH:/home/${USERNAME}/.local/bin/"
 ARG CACHE_BUST=0
 ARG GITHUB_PACKAGE_NAMESPACE="mitul93"
 RUN --mount=type=secret,id=vcpkg-nuget-secret,uid=${USER_UID},gid=${USER_GID},mode=0400 \
-    mono /home/${USERNAME}/.local/bin/nuget.exe sources Add -Source "https://nuget.pkg.github.com/mitul93/index.json" \
-    -Name "github" -Username ${GITHUB_PACKAGE_NAMESPACE} -Password "$(cat /run/secrets/vcpkg-nuget-secret)"
+    mono /home/${USERNAME}/.local/bin/nuget.exe sources Add \
+    -Source "https://nuget.pkg.github.com/${GITHUB_PACKAGE_NAMESPACE}/index.json" \
+    -Name "github" \
+    -Username "${GITHUB_PACKAGE_NAMESPACE}" \
+    -Password "$(cat /run/secrets/vcpkg-nuget-secret)"
 
 # working directory
 ARG __REPOSITORY_NAME=cuda_cpp_learning
