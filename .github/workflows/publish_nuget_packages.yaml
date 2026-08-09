@@ -44,7 +44,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
           target: base
           secrets: |
-            vcpkg-nuget-secret=${{ secrets.GITHUB_TOKEN }}
+            vcpkg-nuget-secret=${{ secrets.VCPKG_NUGET_RW }}
           build-args: |
             USERNAME=devcontainer
             USER_UID=${{ steps.user.outputs.uid }}
