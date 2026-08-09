@@ -2,7 +2,7 @@
 #include <memory>
 
 template <typename T>
-class queue_example {
+class queue {
   private:
     struct node {
         T data;
@@ -16,11 +16,11 @@ class queue_example {
     node* tail = nullptr;
 
   public:
-    queue_example() {
+    queue() {
     }
 
-    queue_example(const queue_example& other) = delete;
-    queue_example& operator=(const queue_example& other) = delete;
+    queue(const queue& other) = delete;
+    queue& operator=(const queue& other) = delete;
 
     std::shared_ptr<T> try_pop() {
         if (!head) {
@@ -46,7 +46,7 @@ class queue_example {
 };
 
 int main() {
-    queue_example<int> q;
+    queue<int> q;
 
     q.push(1);
     q.push(2);
