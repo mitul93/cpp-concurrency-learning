@@ -13,7 +13,7 @@ clean: ## Remove build artifacts from build folder
 all: ## Build all examples
 	@mkdir -p build
 	@cd build && \
-		cmake -DCMAKE_BUILD_TYPE=Release .. && \
+		cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON -DBUILD_BENCHMARKS=ON .. && \
 		make -j $(nproc)
 
 .PHONY: all_debug
@@ -30,6 +30,12 @@ build_benchmark: ## Build benchmark targets
 		cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_BENCHMARKS=ON .. && \
 		make -j $(nproc)
 
+.PHONY: build_w_tsan
+build_w_tsan: ## Build with thread sanitizer
+	@mkdir -p build
+	@cd build && \
+		cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=ON -DENABLE_TSAN=ON -DCMAKE_BUILD_TYPE=Debug -DBUILD_BENCHMARKS=OFF .. && \
+		make -j $(nproc)
 
 .PHONY: publish_nuget_packages
 publish_nuget_packages: ## Build and publish packages
