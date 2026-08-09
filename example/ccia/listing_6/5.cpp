@@ -13,8 +13,13 @@ class queue {
     node* tail;
 
   public:
-    queue() : head(new node), tail(head.get()) {
+    // std::make_unique since c++14
+    queue() : head(std::make_unique<node>()), tail(head.get()) {
     }
+
+    // // also valid
+    // queue() : head(new node), tail(head.get()) {
+    // }
 
     queue(const queue& other) = delete;
     queue& operator=(const queue& other) = delete;

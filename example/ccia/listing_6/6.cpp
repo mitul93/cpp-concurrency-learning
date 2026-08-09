@@ -12,6 +12,9 @@ class threadsafe_queue {
     std::mutex head_mutex;
     std::mutex tail_mutex;
 
+    // when threadsafe_queue object is destroyed, unique_ptr destroys head
+    // which in turn destroys head->next (also unique_ptr) and so on
+    // This is why tail is a raw pointer, not smart pointer
     std::unique_ptr<node> head;
     node* tail;
 
@@ -22,7 +25,7 @@ class threadsafe_queue {
 
     std::unique_ptr<node> pop_head() {
         std::lock_guard tail_lock(head_mutex); // CTAD
-        if (head.get() == tail) {
+        if (head.get() == get_tail()) {
             return nullptr;
         }
 
@@ -32,8 +35,17 @@ class threadsafe_queue {
     }
 
   public:
-    threadsafe_queue() : head(new node), tail(head.get()) {
+    // std::make_unique<T> since c++14
+    threadsafe_queue() : head(std::make_unique<node>()), tail(head.get()) {
     }
+
+    // // Also valid before c++14
+    // threadsafe_queue() : head(new node), tail(head.get()) {
+    // }
+
+    // side note. order of initialization of members? Is following valid?
+    // threadsafe_queue() : tail(head.get()), head(std::make_unique<node>()) {
+    // }
 
     threadsafe_queue(const threadsafe_queue& other) = delete;
     threadsafe_queue& operator=(const threadsafe_queue& other) = delete;
