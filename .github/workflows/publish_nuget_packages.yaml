@@ -49,6 +49,7 @@ jobs:
             USERNAME=devcontainer
             USER_UID=${{ steps.user.outputs.uid }}
             USER_GID=${{ steps.user.outputs.gid }}
+            CACHE_BUST="${{ github.run_id }}"
 
       - name: Update Docker cache
         run: |
