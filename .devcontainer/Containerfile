@@ -25,6 +25,8 @@ RUN --mount=type=cache,target=/var/cache/apt \
     sudo git make curl gnupg2 wget ca-certificates openssh-client \
     # c++
     build-essential clang=${__CLANG_VERSION} clang-tidy clang-format gdb \
+    # perf
+    linux-perf \
     # clangd
     clangd=${__CLANGD_VERSION} \
     # tsan
