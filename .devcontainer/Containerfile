@@ -53,14 +53,14 @@ USER ${USERNAME}
 
 # install CMake (non-root)
 # renovate: datasource=github-tags depName=Kitware/CMake versioning=semver
-ARG CMAKE_VERSION=4.3.4
+ARG CMAKE_VERSION=4.4.2
 RUN --mount=type=bind,source=scripts/install_cmake.sh,target=/tmp/install_cmake.sh,readonly \
     CMAKE_VERSION=${CMAKE_VERSION} /tmp/install_cmake.sh /home/${USERNAME}/cmake
 ENV PATH="$PATH:/home/${USERNAME}/cmake/bin/"
 
 # install vcpkg (non-root)
 # renovate: datasource=github-tags depName=microsoft/vcpkg versioning=loose
-ARG VCPKG_VERSION=2026.06.24
+ARG VCPKG_VERSION=2026.07.29
 RUN --mount=type=bind,source=scripts/install_vcpkg.sh,target=/tmp/install_vcpkg.sh,readonly \
     VCPKG_VERSION=${VCPKG_VERSION} /tmp/install_vcpkg.sh /home/${USERNAME}
 ENV PATH="$PATH:/home/${USERNAME}/vcpkg/"
